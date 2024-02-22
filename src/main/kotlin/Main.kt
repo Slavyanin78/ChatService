@@ -1,6 +1,5 @@
 package ru.netology
 
-
 data class Message(
     val id: Int, val senderId: Int,
     val content: String, var isRead: Boolean
@@ -12,58 +11,42 @@ data class Chat(
 )
 
 class SocialService {
-    private val chats = mutableListOf<Chat>()//Список чатов, хранящихся в социальном сервисе
+    private val chats = mutableListOf<Chat>()
 
-    //Создаём новый чат и добавляем его в список чатов
-    fun createChat(): Chat {
-        val newChat = Chat(chats.size + 1)
-        chats.add(newChat)
-        return newChat
-    }
+    fun createChat(): Chat = Chat(chats.size + 1).also { chats.add(it) }
 
-    //Удаляем чат по его идентификатору
     fun deleteChat(chatId: Int) {
         chats.removeIf { it.id == chatId }
     }
 
-    //Возвращаем список всех чатов
-    fun getChat(): List<Chat> = chats
+    fun getChat(): Sequence<Chat> = chats.asSequence()
 
-    //Возвращаем количество непрочитанных чатов
     fun getUnreadChatsCount(): Int =
-        chats.count { chat -> chat.messages.any { !it.isRead } }
+        chats.asSequence().count { chat -> chat.messages.any { !it.isRead } }
 
-    //Возвращаем последние сообщения из каждого чата
-    fun getLastMessages(): List<String> {
-        return chats.map { chat ->
-            if (chat.messages.isEmpty()) {
-                "No message"
-            } else {
-                "Chat ${chat.id}: ${chat.messages.last().content}"
+    fun getLastMessages(): Sequence<String> =
+        chats.asSequence()
+            .map { chat ->
+                if (chat.messages.isEmpty()) "No message"
+                else "Chat ${chat.id}: ${chat.messages.last().content}"
             }
-        }
-    }
-    //Возвращаем указанное количество последних сообщений и помечаем как прочитанные
-    fun getMessagesFromChat(chatId: Int, messageCount: Int): List<Message> {
-        val chat = chats.find { it.id == chatId }
-        chat?.let { val messagesToReturn = it.messages.takeLast(messageCount)
-        messagesToReturn.forEach { message -> message.isRead = true }
-            return messagesToReturn
-        }
-        return emptyList()
-    }
-    // Создаём новое сообщение в указанном чате
+
+    fun getMessagesFromChat(chatId: Int, messageCount: Int): List<Message> =
+        chats
+            .find { it.id == chatId }
+            ?.messages
+            ?.takeLast(messageCount)
+            ?.onEach { it.isRead = true }
+            ?.toList()
+            ?: emptyList()
+
     fun createMessage(chatId: Int, senderId: Int, content: String) {
-        val chat = chats.find { it.id == chatId }
-        chat?.messages?.add(Message(chat.messages.size + 1, senderId, content, false))
+        chats.find { it.id == chatId }?.messages?.add(Message(chats.flatMap { it.messages }.size + 1, senderId, content, false))
     }
-    //Удаляем сообщение в указанном чате
+
     fun deleteMessage(chatId: Int, messageId: Int) {
-        val chat = chats.find { it.id == chatId }
-        chat?.messages?.removeIf { it.id == messageId }
+        chats.find { it.id == chatId }?.messages?.removeIf { it.id == messageId }
     }
-
-
 }
 
 fun main() {
@@ -83,9 +66,4 @@ fun main() {
 
     socialService.getMessagesFromChat(chat1.id, 2).forEach { println(it.content) }
     socialService.deleteMessage(chat1.id, 1)
-    println(socialService.getChat())
-
-    socialService.deleteChat(1)
-    println(socialService.getChat())
-
 }
