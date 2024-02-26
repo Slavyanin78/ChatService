@@ -32,7 +32,7 @@ class SocialService {
             }
 
     fun getMessagesFromChat(chatId: Int, messageCount: Int): List<Message> =
-        chats
+        chats.asReversed().asSequence()
             .find { it.id == chatId }
             ?.messages
             ?.takeLast(messageCount)
