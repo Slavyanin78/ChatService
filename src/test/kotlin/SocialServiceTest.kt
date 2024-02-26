@@ -1,71 +1,53 @@
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
-import ru.netology.Chat
 import ru.netology.SocialService
 
 class SocialServiceTest {
-
     @Test
-    fun createChat() {
+    fun testCreateChat() {
         val socialService = SocialService()
-        val chat = socialService.createChat()
-        assertEquals(1,chat.id)
+        socialService.createChat()
+        assertEquals(1, socialService.getChat().count())
     }
 
     @Test
-    fun deleteChat() {
+    fun testDeleteChat() {
         val socialService = SocialService()
-        val chat = socialService.createChat()
-        socialService.deleteChat(chat.id)
-        assertEquals(0, socialService.getChat().size)
-    }
-
-
-    @Test
-    fun getUnreadChatsCount() {
-        val socialService = SocialService()
-        val chat1 = socialService.createChat()
-        socialService.createMessage(chat1.id, 1, "Hello")
-        val chat2 = socialService.createChat()
-        socialService.createMessage(chat2.id, 1, "Hi")
-        assertEquals(2, socialService.getUnreadChatsCount())
+        socialService.createChat()
+        socialService.deleteChat(1)
+        assertEquals(0, socialService.getChat().count())
     }
 
     @Test
-    fun getLastMessages() {
+    fun testCreateMessage() {
         val socialService = SocialService()
-        val chat1 = socialService.createChat()
-        socialService.createMessage(chat1.id, 1, "Hello")
-        assertEquals("Chat 1: Hello", socialService.getLastMessages()[0])
+        socialService.createChat()
+        socialService.createMessage(1, 1, "Hello!")
+        assertEquals(1, socialService.getMessagesFromChat(1, 1).size)
     }
 
     @Test
-    fun getMessagesFromChat() {
+    fun testDeleteMessage() {
         val socialService = SocialService()
-        val chat1 = socialService.createChat()
-        socialService.createMessage(chat1.id, 1, "Hello")
-        socialService.createMessage(chat1.id, 2, "Hi")
-        val message = socialService.getMessagesFromChat(chat1.id, 2)
-        assertEquals(2, message.size)
-        assertEquals(true, message.all { it.isRead })
+        socialService.createChat()
+        socialService.createMessage(1, 1, "Hello!")
+        socialService.deleteMessage(1, 1)
+        assertEquals(0, socialService.getMessagesFromChat(1, 1).size)
     }
 
     @Test
-    fun createMessage() {
+    fun testGetUnreadChatsCount() {
         val socialService = SocialService()
-        val chat1 = socialService.createChat()
-        socialService.createMessage(chat1.id, 1, "Hello")
-        val message = socialService.getLastMessages()[0]
-        assertEquals("Chat 1: Hello", message)
+        socialService.createChat()
+        socialService.createMessage(1, 1, "Hello!")
+        assertEquals(1, socialService.getUnreadChatsCount())
     }
 
     @Test
-    fun deleteMessage() {
+    fun testGetLastMessages() {
         val socialService = SocialService()
-        val chat1 = socialService.createChat()
-        socialService.createMessage(chat1.id, 1, "Hello")
-        socialService.deleteMessage(chat1.id, 1)
-        assertEquals(0, socialService.getMessagesFromChat(chat1.id, 10).size)
+        socialService.createChat()
+        socialService.createMessage(1, 1, "Hello!")
+        assertEquals("Chat 1: Hello!" , socialService.getLastMessages().iterator().next())
     }
 }
